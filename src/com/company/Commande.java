@@ -1,4 +1,5 @@
 package com.company;
 
-public class Commande {
+public abstract class Commande {
+    abstract void excuterCommande();
 }
