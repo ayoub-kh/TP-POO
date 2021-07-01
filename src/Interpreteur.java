@@ -2,8 +2,8 @@ import java.util.*;
 
 public class Interpreteur {
     //region Attributs
-    private final Map<String, Double> tableDeSymbol = new HashMap<>();
-    private String ligne;
+    private static final String[] fonc = {"let", "print", "end", "sin", "cos", "tan", "abs", "sqrt", "log"};  // liste des mots clés reservés pour l'intérpreteur
+    private final Map<String, Double> tableDeSymbol = new HashMap<>();  // table des symboles
     //endregion
 
     //region Constructeur
@@ -22,19 +22,10 @@ public class Interpreteur {
     public Map<String, Double> getTableDeSymbol() {
         return tableDeSymbol;
     }
-
-    public String getLigne() {
-        return ligne;
-    }
-
-    public void setLigne(String ligne) {
-        this.ligne = ligne;
-    }
     //endregion
 
     //region Analyseurs
-    public String analyserCommande(){  // analyser une ligne de commande et retourne le resultat de la commande
-        String[] fonc = {"let", "print", "sin", "cos", "tan", "abs", "sqrt", "log"};  // liste des mots clés reservés pour l'intérpreteur
+    public String analyserCommande(String ligne){  // analyser une ligne de commande et retourne le resultat de la commande
         try {
             String[] commandeLigne = ligne.split(" ", 2);  // diviser la ligne de commande en [0]: la commande et [1]: l'expression
             if (commandeLigne[0].equals("print")) {
@@ -45,6 +36,8 @@ public class Interpreteur {
                 if (Arrays.asList(fonc).contains(varNom)) throw new Exception("Erreur: le nom du variable ne peut pas etre un des mots clés du l'interpreteur");
                 tableDeSymbol.put(varNom, analyserExpression(commandeLigne[1].replace(" ", "")));  // ajouter/MAJ du variable à la table des symboles
                 return "Ok";
+            } else if (commandeLigne[0].equals("end")) {
+                return "Fin du programme";
             } else throw new Exception("Erreur : Commande incorrect.");
         } catch (IndexOutOfBoundsException e) {
             return "Erreur : Expression non trouvée";
@@ -117,14 +110,18 @@ public class Interpreteur {
         return new Addition();
     }
 
-    public Expression analyserElement(String element) {
-        return new Addition();
+    public Expression analyserElement(String element) throws Exception {
+        if (element.equals("")) throw new Exception("Erreur : Expression erronée");
+        else if (element.matches("d+")) {  // si c'est un nombre
+            return new Nombre(Double.parseDouble(element));
+        } else if (!element.contains("(")) {  // sinon si c'est un nom de variable
+            return new Variable(element);
+        } else if (element.startsWith("(")) {  // sinon si c'est une expression entre paranthéses
+            return new Nombre(analyserExpression(element.substring(1, element.length() - 1)));  // analyser l'expression entre les deux parenthéses
+        } else if (!element.equals("let") && !element.equals("print") && !element.equals("end") && Arrays.asList(fonc).contains(element)){  // c'est une fonction
+            String[] args = element.split("\\(", 2);  // args[0]: nom de fonction et args[1] l'expression du l'argument
+            return new Fonction(args[0], analyserExpression(args[1].substring(0, args[1].length() - 1)), tableDeSymbol);  //
+        } else throw new Exception("Erreur : Expression erronée");
     }
     //endregion
-
-    static class IncorrectExpression extends Exception {
-        public IncorrectExpression(String message) {
-            super(message);
-        }
-    }
 }
