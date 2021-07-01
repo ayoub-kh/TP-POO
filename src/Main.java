@@ -13,8 +13,8 @@ public class Main {
         tableDeSymbol.put("log", 6.0);
         for (String f : tableDeSymbol.keySet()) {
             System.out.println(f + " val: " +tableDeSymbol.get(f));
-        } */
-        System.out.println(Arrays.toString("let x = 3+5 * 3".split(" ")));
+        }
+        System.out.println(Arrays.toString("let x = 3+5 * 3 - 9 + 4".split(" ")));
         StringTokenizer tokenizer = new StringTokenizer("let x = 3+5 * 3+5/78");
         System.out.println(tokenizer.nextToken());
         tokenizer = new StringTokenizer(tokenizer.nextToken("").replace(" ", ""));
@@ -22,7 +22,17 @@ public class Main {
         tokenizer = new StringTokenizer(tokenizer.nextToken());
         while (tokenizer.hasMoreTokens()) {
             System.out.println(tokenizer.nextToken("+"));
+        }*/
+        String[] k = "let x = -3+5 * 3 - 9 + ".split(" ", 2);
+        System.out.println(k[0] + "/" + k[1]);
+        k = k[1].replace(" ", "").split("=", 2);
+        System.out.println(k[0] + "/" + k[1]);
+        while (true){
+            System.out.println(k[1].indexOf("+") > k[1].indexOf("-"));
+            k = k[1].split("[-+]", 2);
+            if (k.length == 1) break;
+            if (k[1].equals("")) System.out.println("tnaket");
+            System.out.println(k[0] + "/" + k[1]);
         }
-
     }
 }

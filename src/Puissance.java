@@ -1,2 +1,2 @@
-public class Puissance {
+public class Puissance implements Expression{
 }

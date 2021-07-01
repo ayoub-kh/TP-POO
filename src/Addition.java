@@ -1,2 +1,2 @@
-public class Addition {
+public class Addition implements Expression{
 }

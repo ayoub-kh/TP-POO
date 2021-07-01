@@ -1,2 +1,2 @@
-public class Soustraction {
+public class Soustraction implements Expression{
 }

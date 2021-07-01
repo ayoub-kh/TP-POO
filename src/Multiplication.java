@@ -1,2 +1,2 @@
-public class Multiplication {
+public class Multiplication implements Expression{
 }
