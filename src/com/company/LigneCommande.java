@@ -4,7 +4,7 @@ public class LigneCommande {
     private Commande commande;
     private Expression expr;
 
-    public LigneCommande(String ligneCommande) throws TypeCommandeException {
+    public LigneCommande(String ligneCommande) throws TypeCommandeException{
         String[] parts = ligneCommande.split(" ",2);
         String typeCommande = parts[0]; // type de commande
         if(typeCommande.equals("let")) {
@@ -12,11 +12,9 @@ public class LigneCommande {
         }
         else if(typeCommande.equals("print")) {
             commande = new PrintCommande();
+            this.expr = new Expression(parts[1]);
         }
-        else{
-            throw new TypeCommandeException();
-        }
-
+        else throw new TypeCommandeException();
     }
 
     public void EvaluerLigneCommande() {
@@ -27,6 +25,6 @@ public class LigneCommande {
 class TypeCommandeException extends Exception{
     @Override
     public String getMessage() {
-        return "Erreur: Commande non existante";
+        return "Commande non existante";
     }
 }
