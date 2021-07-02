@@ -8,17 +8,30 @@ public class LigneCommande {
         String[] parts = ligneCommande.split(" ",2);
         String typeCommande = parts[0]; // type de commande
         if(typeCommande.equals("let")) {
-            commande = new LetCommande();
+            this.commande = new LetCommande();
         }
         else if(typeCommande.equals("print")) {
-            commande = new PrintCommande();
+            this.commande = new PrintCommande();
             this.expr = new Expression(parts[1]);
         }
         else throw new TypeCommandeException();
     }
 
-    public void EvaluerLigneCommande() {
-    };
+    public Commande getCommande() {
+        return commande;
+    }
+
+    public void setCommande(Commande commande) {
+        this.commande = commande;
+    }
+
+    public Expression getExpr() {
+        return expr;
+    }
+
+    public void setExpr(Expression expr) {
+        this.expr = expr;
+    }
 }
 
 

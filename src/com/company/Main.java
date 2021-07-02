@@ -14,9 +14,12 @@ public class Main {
         Scanner sc = new Scanner(System.in);
         System.out.print(">     ");
         String ligne = sc.nextLine();  // Read user input
-        while (ligne!="end"){
+        while (!ligne.equals("end")){
             try{
                 LigneCommande ligneCommande = new LigneCommande(ligne);
+                if (ligneCommande.getCommande().getTypeCommande()==Type_Commande.print){
+                    ligneCommande.getExpr().evaluaterExpression();
+                }
                 System.out.println("Commande juste");
             }
             catch (TypeCommandeException e){
