@@ -2,7 +2,7 @@ import java.util.*;
 
 public class Interpreteur {
     //region Attributs
-    private static final String[] fonc = {"let", "print", "end", "sin", "cos", "tan", "abs", "sqrt", "log"};  // liste des mots clés reservés pour l'intérpreteur
+    private static final String[] fonc = {"let", "print", "end", "var", "sin", "cos", "tan", "abs", "sqrt", "log"};  // liste des mots clés reservés pour l'intérpreteur
     private final Map<String, Double> tableDeSymbol = new HashMap<>();  // table des symboles
     private static final Map<Integer, String> sousExpressions = new HashMap<>();  // une liste pour stocker les sous expressions entre parenthéses
     private static int nb = 0;  // indice pour indiquer le nombre des sous expressions
@@ -27,28 +27,45 @@ public class Interpreteur {
     //endregion
 
     //region Analyseurs
+    public String affichierVariables() {
+        String result = "";
+        for (String key : tableDeSymbol.keySet()) {
+            if (Arrays.asList(fonc).contains(key)) continue;
+            result = result.concat(key + " == " + tableDeSymbol.get(key).toString() + "\n");
+        }
+        return result;
+    }
+
     public String analyserCommande(String ligne){  // analyser une ligne de commande et retourne le resultat de la commande
         sousExpressions.clear();
         nb = 0;
         try {
-            String[] commandeLigne = ligne.split(" ", 2);  // diviser la ligne de commande en [0]: la commande et [1]: l'expression
+            String[] commandeLigne = ligne.split("\\s++", 2);  // diviser la ligne de commande en [0]: la commande et [1]: l'expression
             switch (commandeLigne[0]) {
+                case "var":
+                    String vars = affichierVariables();
+                    if (vars.equals("")) return "Aucune variable déclarée pour le moment.";
+                    return "Les variables stockées :\n" + vars;
                 case "print":
                     return "La valeur est : " + analyserExpression(commandeLigne[1].replace(" ", ""));  // retourner le resultat du "print"
 
                 case "let":
-                    commandeLigne = commandeLigne[1].replace(" ", "").split("=", 2);  // diviser l'expression de la commande en [0]: la variable et [1]: l'expression
-
-                    String varNom = commandeLigne[0];
+                    commandeLigne = commandeLigne[1].split("=", 2);  // diviser l'expression de la commande en [0]: la variable et [1]: l'expression
+                    String varNom = commandeLigne[0].stripTrailing();
                     if (Arrays.asList(fonc).contains(varNom))
                         throw new Exception("Erreur: le nom du variable ne peut pas etre un nom du fonction ou nom d'une commande");
-                    else if (!varNom.matches("^[a-zA-Z]"))
+                    else if (!varNom.substring(0, 1).matches("^[a-zA-Z]"))
                         throw new Exception("Erreur: le nom du variable doit commencer avec un caractére");
+                    else if (varNom.contains(" "))
+                        throw new Exception("Erreur: le nom du variable ne doit pas contenir du blanc");
                     tableDeSymbol.put(varNom, analyserExpression(commandeLigne[1].replace(" ", "")));  // ajouter/MAJ du variable à la table des symboles
                     return "Ok";
 
                 case "end":
                     return "Fin du programme";
+
+                case "":
+                    throw new Exception("Erreur : Commande introuvable.");
 
                 default:
                     throw new Exception("Erreur : Commande incorrect.");
@@ -67,10 +84,8 @@ public class Interpreteur {
         while (expression.contains("(")) {  // on remplace tous les expression entre parenthéses par le charactére special '$<nb>$'
             String sousExp = analyserParenthese(expression);
             sousExpressions.put(nb, sousExp.substring(1, sousExp.length() - 1));  // ajouter la sous expression à la liste
-
             expression = expression.replace(sousExp, "$" + nb + "$");
             nb++;
-            //System.out.println(expression);
         }
 
         if (!expression.contains("+") && !expression.contains("-")) terme = analyserTerme(expression);  // un seul terme
@@ -138,8 +153,8 @@ public class Interpreteur {
     public Expression analyserElement(String element) throws Exception {
         if (element.equals("")) throw new Exception("Erreur : Expression erronée");
         else if (element.contains(")")) throw new Exception("Erreur : Paranthése ouvrante manquante");
-        else if (element.matches("\\d+")) {  // si c'est un nombre
-            return new Nombre(Double.parseDouble(element));
+        else if (element.matches("[\\d.,]+")) {  // si c'est un nombre
+            return new Nombre(Double.parseDouble(element.replace(",", ".")));
         } else if (!element.contains("$") && !Arrays.asList(fonc).contains(element)) {  // sinon si c'est un nom de variable
             return new Variable(element);
         } else if (element.startsWith("$") && element.endsWith("$")) {  // sinon si c'est une sous expression entre paranthéses
@@ -152,12 +167,10 @@ public class Interpreteur {
             String[] args = element.split("\\$");  // args[0]: nom de fonction et args[1] l'expression du l'argument
             if (!args[0].equals("let") && !args[0].equals("print") && !args[0].equals("end") && Arrays.asList(fonc).contains(args[0])) {  // c'est une fonction
                 int key = Integer.parseInt(args[1]);
-                //System.out.println(element + "/" + sousExpressions);
                 String sousExp = sousExpressions.get(key);
-                //System.out.println(key + "/" + sousExp);
                 sousExpressions.remove(key);
                 return new Fonction(args[0], analyserExpression(sousExp), tableDeSymbol);  // recouperer la sous expression puis la passer avec le nom du fonction à un element de fonction
-            } else throw new Exception("Erreur : Expression erronée");
+            } else throw new Exception("Erreur : nom de fonction incorrect");
         }
     }
 

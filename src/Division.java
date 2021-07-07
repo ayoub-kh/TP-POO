@@ -10,6 +10,9 @@ public class Division implements Expression{
     }
 
     public double evaluer(Map<String, Double> tableDeSymbol) {
-        return op1.evaluer(tableDeSymbol) / op2.evaluer(tableDeSymbol);
+        double c;
+        if(( c=op2.evaluer(tableDeSymbol)) != 0)
+            return op1.evaluer(tableDeSymbol) / c;
+        throw new ArithmeticException("Erreur : Division par 0.");
     }
 }

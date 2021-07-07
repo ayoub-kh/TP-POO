@@ -9,7 +9,7 @@ public class Variable implements Expression{
 
     public double evaluer(Map<String, Double> tableDeSymbol) {
         if (tableDeSymbol.containsKey(nomVar)) return tableDeSymbol.get(nomVar);
-        else if (!nomVar.matches("^[a-zA-Z]")) throw new AssertionError("Erreur : Expression erronnée");
-        else throw new AssertionError("Erreur : Variable non declarée");
+        else if (!nomVar.substring(0,1).matches("^[a-zA-Z]")) throw new AssertionError("Erreur : Expression erronnée");
+        else throw new AssertionError("Erreur : Variable '" + nomVar + "' non declarée");
     }
 }
