@@ -15,7 +15,7 @@ public class Main {
             System.out.print("> ");
             String result = i.analyserCommande(scanner.nextLine());
             System.out.println(result);
-            if (result.equals("Fin du programme")) break;
+            if (result.equals("End")) break;
         }
     }
 }

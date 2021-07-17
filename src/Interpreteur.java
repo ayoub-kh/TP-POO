@@ -1,68 +1,62 @@
 import java.util.*;
 
 public class Interpreteur {
-    //region Attributs
-    private static final String[] fonc = {"let", "print", "end", "var", "sin", "cos", "tan", "abs", "sqrt", "log"};  // liste des mots clés reservés pour l'intérpreteur
-    private final Map<String, Double> tableDeSymbol = new HashMap<>();  // table des symboles
-    private static final Map<Integer, String> sousExpressions = new HashMap<>();  // une liste pour stocker les sous expressions entre parenthéses
-    private static int nb = 0;  // indice pour indiquer le nombre des sous expressions
-    //endregion
-
-    //region Constructeur
+    private static final String[] func_commande = {"let", "print", "end", "var", "sin", "cos", "tan", "abs", "sqrt", "log"};
+    private final Map<String, Double> symbolTable = new HashMap<>();  
+    private static final Map<Integer, String> sous_expressions = new HashMap<>();  
+    private static int nb = 0;
     public Interpreteur() {
-        // initialiser la table des symboles à les fonctions
-        tableDeSymbol.put("sin", 1.0);
-        tableDeSymbol.put("cos", 2.0);
-        tableDeSymbol.put("tan", 3.0);
-        tableDeSymbol.put("abs", 4.0);
-        tableDeSymbol.put("sqrt", 5.0);
-        tableDeSymbol.put("log", 6.0);
+        symbolTable.put("sin", 1.0);
+        symbolTable.put("cos", 2.0);
+        symbolTable.put("tan", 3.0);
+        symbolTable.put("abs", 4.0);
+        symbolTable.put("sqrt", 5.0);
+        symbolTable.put("log", 6.0);
     }
     //endregion
 
     //region Getters and Setters
-    public Map<String, Double> getTableDeSymbol() {
-        return tableDeSymbol;
+    public Map<String, Double> getsymbolTable() {
+        return symbolTable;
     }
     //endregion
 
     //region Analyseurs
-    public String affichierVariables() {
+    public String afficherVariables() {
         String result = "";
-        for (String key : tableDeSymbol.keySet()) {
-            if (Arrays.asList(fonc).contains(key)) continue;
-            result = result.concat(key + " == " + tableDeSymbol.get(key).toString() + "\n");
+        for (String key : symbolTable.keySet()) {
+            if (Arrays.asList(func_commande).contains(key)) continue;
+            result = result.concat(key + " == " + symbolTable.get(key).toString() + "\n");
         }
         return result;
     }
 
-    public String analyserCommande(String ligne){  // analyser une ligne de commande et retourne le resultat de la commande
-        sousExpressions.clear();
+    public String analyserCommande(String ligne){
+        sous_expressions.clear();
         nb = 0;
         try {
-            String[] commandeLigne = ligne.split("\\s++", 2);  // diviser la ligne de commande en [0]: la commande et [1]: l'expression
+            String[] commandeLigne = ligne.split("\\s++", 2);
             switch (commandeLigne[0]) {
                 case "var":
-                    String vars = affichierVariables();
+                    String vars = afficherVariables();
                     if (vars.equals("")) return "Aucune variable déclarée pour le moment.";
                     return "Les variables stockées :\n" + vars;
                 case "print":
-                    return "La valeur est : " + analyserExpression(commandeLigne[1].replace(" ", ""));  // retourner le resultat du "print"
-
+                    return "La valeur est : " + evlauer_expression(commandeLigne[1].replace(" ", ""));
                 case "let":
-                    commandeLigne = commandeLigne[1].split("=", 2);  // diviser l'expression de la commande en [0]: la variable et [1]: l'expression
+                    commandeLigne = commandeLigne[1].split("=", 2);
                     String varNom = commandeLigne[0].stripTrailing();
-                    if (Arrays.asList(fonc).contains(varNom))
-                        throw new Exception("Erreur: le nom du variable ne peut pas etre un nom du fonction ou nom d'une commande");
+                    if (Arrays.asList(func_commande).contains(varNom))
+                        throw new Exception("Erreur: le nom du variable ne peut pas etre un nom du func_commandetion ou nom d'une commande");
                     else if (!varNom.substring(0, 1).matches("^[a-zA-Z]"))
                         throw new Exception("Erreur: le nom du variable doit commencer avec un caractére");
                     else if (varNom.contains(" "))
                         throw new Exception("Erreur: le nom du variable ne doit pas contenir du blanc");
-                    tableDeSymbol.put(varNom, analyserExpression(commandeLigne[1].replace(" ", "")));  // ajouter/MAJ du variable à la table des symboles
+                    symbolTable.put(varNom, evlauer_expression(commandeLigne[1].replace(" ", "")));
                     return "Ok";
 
                 case "end":
-                    return "Fin du programme";
+                    return "End";
 
                 case "":
                     throw new Exception("Erreur : Commande introuvable.");
@@ -77,18 +71,18 @@ public class Interpreteur {
         }
     }
 
-    public double analyserExpression(String expression) throws Exception {
+    public double evlauer_expression(String expression) throws Exception {
         if (expression.equals("")) throw new Exception("Erreur : Expression manquante");
         String[] termes;
         Expression terme;
-        while (expression.contains("(")) {  // on remplace tous les expression entre parenthéses par le charactére special '$<nb>$'
+        while (expression.contains("(")) {
             String sousExp = analyserParenthese(expression);
-            sousExpressions.put(nb, sousExp.substring(1, sousExp.length() - 1));  // ajouter la sous expression à la liste
+            sous_expressions.put(nb, sousExp.substring(1, sousExp.length() - 1));
             expression = expression.replace(sousExp, "$" + nb + "$");
             nb++;
         }
 
-        if (!expression.contains("+") && !expression.contains("-")) terme = analyserTerme(expression);  // un seul terme
+        if (!expression.contains("+") && !expression.contains("-")) terme = analyserTerme(expression);
         else {
             boolean somme = !expression.contains("-") && expression.contains("+") || expression.contains("-") && expression.contains("+") && expression.indexOf("+") < expression.indexOf("-");  // pour indiquer si c'est une addition ou soustraction
             termes = expression.split("[-+]", 2);
@@ -107,7 +101,7 @@ public class Interpreteur {
             }
         }
         if (terme == null) throw new Exception("Erreur : Expression erronée");
-        return terme.evaluer(tableDeSymbol);
+        return terme.evaluer(symbolTable);
     }
 
     public Expression analyserTerme(String terme) throws Exception {
@@ -155,22 +149,22 @@ public class Interpreteur {
         else if (element.contains(")")) throw new Exception("Erreur : Paranthése ouvrante manquante");
         else if (element.matches("[\\d.,]+")) {  // si c'est un nombre
             return new Nombre(Double.parseDouble(element.replace(",", ".")));
-        } else if (!element.contains("$") && !Arrays.asList(fonc).contains(element)) {  // sinon si c'est un nom de variable
+        } else if (!element.contains("$") && !Arrays.asList(func_commande).contains(element)) {  // sinon si c'est un nom de variable
             return new Variable(element);
         } else if (element.startsWith("$") && element.endsWith("$")) {  // sinon si c'est une sous expression entre paranthéses
             int key = Integer.parseInt(element.substring(1, element.length() - 1));
-            String sousExp = sousExpressions.get(key);
-            sousExpressions.remove(key);
-            return new Nombre(analyserExpression(sousExp));  // analyser l'expression entre les deux parenthéses
-        } else {  // c'est une fonction ou incorrect element
+            String sousExp = sous_expressions.get(key);
+            sous_expressions.remove(key);
+            return new Nombre(evlauer_expression(sousExp));  // analyser l'expression entre les deux parenthéses
+        } else {  // c'est une func_commandetion ou incorrect element
 
-            String[] args = element.split("\\$");  // args[0]: nom de fonction et args[1] l'expression du l'argument
-            if (!args[0].equals("let") && !args[0].equals("print") && !args[0].equals("end") && Arrays.asList(fonc).contains(args[0])) {  // c'est une fonction
+            String[] args = element.split("\\$");  // args[0]: nom de func_commandetion et args[1] l'expression du l'argument
+            if (!args[0].equals("let") && !args[0].equals("print") && !args[0].equals("end") && Arrays.asList(func_commande).contains(args[0])) {  // c'est une func_commandetion
                 int key = Integer.parseInt(args[1]);
-                String sousExp = sousExpressions.get(key);
-                sousExpressions.remove(key);
-                return new Fonction(args[0], analyserExpression(sousExp), tableDeSymbol);  // recouperer la sous expression puis la passer avec le nom du fonction à un element de fonction
-            } else throw new Exception("Erreur : nom de fonction incorrect");
+                String sousExp = sous_expressions.get(key);
+                sous_expressions.remove(key);
+                return new Fonction(args[0], evlauer_expression(sousExp), symbolTable);  // recouperer la sous expression puis la passer avec le nom du func_commandetion à un element de func_commandetion
+            } else throw new Exception("Erreur : nom de func_commandetion incorrect");
         }
     }
 
